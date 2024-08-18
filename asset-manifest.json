@@ -1,0 +1,14 @@
+{
+  "files": {
+    "main.css": "/info-project/static/css/main.0decdf68.css",
+    "main.js": "/info-project/static/js/main.30b56031.js",
+    "static/media/icons8-информация.svg": "/info-project/static/media/icons8-информация.0ffd4f710700a0fef17c.svg",
+    "index.html": "/info-project/index.html",
+    "main.0decdf68.css.map": "/info-project/static/css/main.0decdf68.css.map",
+    "main.30b56031.js.map": "/info-project/static/js/main.30b56031.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.0decdf68.css",
+    "static/js/main.30b56031.js"
+  ]
+}
