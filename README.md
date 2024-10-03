@@ -1,6 +1,6 @@
 # Тестовое задание в INFO PROJECT
 
-Проект можно посмотреть по этой [ссылке](https://github.com/facebook/create-react-app).
+Проект можно посмотреть по этой [ссылке](https://procsimo97.github.io/info-project/).
 
 ## Что было реализовано
 1. Карточка с информацией. 
