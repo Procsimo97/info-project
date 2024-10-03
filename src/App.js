@@ -34,91 +34,82 @@ function Products() {
     };
 
     const applyFilters = (newFilters) => {
-        const filteredProducts = initialProducts.filter(product => {
-            return (
-                (newFilters.brand.length === 0 || newFilters.brand.includes(product.brand)) &&
-                (newFilters.color.length === 0 || newFilters.color.includes(product.color)) &&
-                (newFilters.size.length === 0 || newFilters.size.includes(product.size)) &&
-                (newFilters.type.length === 0 || newFilters.type.includes(product.type))
-            );
+        let filteredProducts = initialProducts;
+        // Применяем каждый фильтр последовательно
+        Object.keys(newFilters).forEach((filterType) => {
+            if (newFilters[filterType].length > 0) {
+                filteredProducts = filteredProducts.filter(product => 
+                    newFilters[filterType].includes(product[filterType])
+                );
+            }
         });
 
         setActiveProducts(filteredProducts);
     };
 
+// Функция для вычисления доступных значений фильтра (для включения/выключения чекбоксов)
+const getFilteredOptions = (filterType, selectedFilters) => {
+    let filteredProducts = initialProducts;
 
-    const getFilteredOptions = (filterType, currentFilters) => {
-        return initialProducts.reduce((options, product) => {
-            const filterMatch = Object.keys(currentFilters).every(key => {
-                if (key === filterType) return true;
-                return currentFilters[key].length === 0 || currentFilters[key].includes(product[key]);
-            });
-
-            if (filterMatch && !options.includes(product[filterType])) {
-                options.push(product[filterType]);
-            }
-
-            return options;
-        }, []);
-    };
-
-    const isOptionDisabled = (filterType, option, currentFilters) => {
-        const testFilters = {
-            ...currentFilters,
-            [filterType]: [option]
-        };
-
-        const filteredProducts = initialProducts.filter(product => {
-            return (
-                (testFilters.brand.length === 0 || testFilters.brand.includes(product.brand)) &&
-                (testFilters.color.length === 0 || testFilters.color.includes(product.color)) &&
-                (testFilters.size.length === 0 || testFilters.size.includes(product.size)) &&
-                (testFilters.type.length === 0 || testFilters.type.includes(product.type))
+    Object.keys(selectedFilters).forEach(key => {
+        if (key !== filterType && selectedFilters[key].length > 0) {
+            filteredProducts = filteredProducts.filter(product => 
+                selectedFilters[key].includes(product[key])
             );
-        });
+        }
+    });
+    return [...new Set(filteredProducts.map(product => product[filterType]))];
+};
 
-        return filteredProducts.length === 0;
-    };
-
-    const renderFilterOptions = (filterType, options) => {
-        return options.map(option => (
-            <label key={option}>
+// Рендеринг опций фильтров с поддержкой disabled для недоступных вариантов
+const renderFilterOptions = (filterType, options) => {
+    return options.map((option, index) => {
+        const disabledOptions = getFilteredOptions(filterType, filters);
+        return (
+            <div key={index}>
                 <input
                     type="checkbox"
-                    value={option}
-                    onChange={() => handleFilterChange(filterType, option)}
-                    disabled={isOptionDisabled(filterType, option, filters)}
+                    id={`${filterType}-${option}`}
                     checked={filters[filterType].includes(option)}
+                    onChange={() => handleFilterChange(filterType, option)}
+                    disabled={!disabledOptions.includes(option)}  // Отключаем, если фильтр недоступен
                 />
-                {option}
-            </label>
-        ));
-    };
+                <label htmlFor={`${filterType}-${option}`}>{option}</label>
+            </div>
+        );
+    });
+};
 
     return (
-        <div className="products-page">
-            <h1>Фильтр товаров</h1>
-            <div className="container">
-                <div className="filters">
-                    <div className="filter-group">
-                        <h3>Отрасль</h3>
-                        {renderFilterOptions('brand', getFilteredOptions('brand', filters))}
-                    </div>
-                    <div className="filter-group">
-                        <h3>Цвет</h3>
-                        {renderFilterOptions('color', getFilteredOptions('color', filters))}
-                    </div>
-                    <div className="filter-group">
-                        <h3>Размер компании</h3>
-                        {renderFilterOptions('size', getFilteredOptions('size', filters))}
-                    </div>
-                    <div className="filter-group">
-                        <h3>Тип</h3>
-                        {renderFilterOptions('type', getFilteredOptions('type', filters))}
-                    </div>
+      <div className="products-page">
+        <h1>Фильтр товаров</h1>
+        <div className="container">
+            <div className="filters">
+
+                <div className="filter-group">
+                    <h3>Отрасль</h3>
+                    {renderFilterOptions('brand', ['Энергетика', 'Финансы', 'Технологии'])}
                 </div>
-                <div className="product-list">
-                    {activeProducts.map(product => (
+
+                <div className="filter-group">
+                    <h3>Цвет</h3>
+                    {renderFilterOptions('color', ['Белый', 'Зелёный', 'Жёлтый', 'Синий', 'Чёрный'])}
+                </div>
+
+                <div className="filter-group">
+                    <h3>Размер компании</h3>
+                    {renderFilterOptions('size', ['Крупный', 'Средний'])}
+                </div>
+
+                <div className="filter-group">
+                    <h3>Тип</h3>
+                    {renderFilterOptions('type', ['Гидроэнергетика', 'Банковское дело', 'ИТ-компания', 'Нефтегазовая'])}
+                </div>
+            </div>
+
+            <div className="product-list">
+                {activeProducts.length > 0 ? (
+                    activeProducts.map(product => (
                         <div key={product.id} className="product-item">
                             <h3>{product.name}</h3>
                             <p><strong>Отрасль:</strong> {product.brand}</p>
@@ -126,10 +117,14 @@ function Products() {
                             <p><strong>Размер компании:</strong> {product.size}</p>
                             <p><strong>Тип:</strong> {product.type}</p>
                         </div>
-                    ))}
-                </div>
+                    ))
+                ) : (
+                    <p>Нет продуктов, соответствующих выбранным фильтрам</p>
+                )}
             </div>
         </div>
+    </div>
+
     );
 }
 
@@ -163,7 +158,9 @@ function Animations() {
                     <div class="card" id="card">
                         <div class="card-side card-front">
                             <h2 >РусГидро</h2>
-                            <div className="info-icon"></div>
+                            <div className="info-icon">
+                              <svg xmlns="http://www.w3.org/2000/svg"  viewBox="0 0 48 48" width="48px" height="48px"><path className="icon-path" fill="black" d="M 24 3 C 12.413858 3 3 12.413866 3 24 C 3 35.586134 12.413858 45 24 45 C 35.586142 45 45 35.586134 45 24 C 45 12.413866 35.586142 3 24 3 z M 24 5 C 34.505263 5 43 13.494744 43 24 C 43 34.505256 34.505263 43 24 43 C 13.494737 43 5 34.505256 5 24 C 5 13.494744 13.494737 5 24 5 z M 24 12.185547 C 23.159 12.185547 22.474609 12.863313 22.474609 13.695312 C 22.474609 14.535312 23.159 15.220703 24 15.220703 C 24.85 15.220703 25.541016 14.535312 25.541016 13.695312 C 25.541016 12.863312 24.85 12.185547 24 12.185547 z M 24 17.935547 C 23.305 17.935547 22.818359 18.454312 22.818359 19.195312 L 22.818359 33.757812 C 22.818359 34.498812 23.304 35.017578 24 35.017578 C 24.696 35.017578 25.181641 34.498813 25.181641 33.757812 L 25.181641 19.193359 C 25.181641 18.452359 24.695 17.935547 24 17.935547 z"/></svg>
+                            </div>
                         </div>
                         <div class="card-side card-back">
                             <h3 className="subtitle-card">РАО</h3>
